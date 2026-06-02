@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Mac Remote</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap');
+
+:root {
+  --bg: #111213;
+  --s1: #1c1d1f;
+  --s2: #252628;
+  --s3: #2e3032;
+  --border: #333537;
+  --g: #00ff88;
+  --g2: #00cc66;
+  --blue: #4d9fff;
+  --red: #ff4455;
+  --yellow: #ffcc00;
+  --purple: #a78bfa;
+  --text: #e2e4e8;
+  --muted: #5a5d65;
+  --r: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overscroll-behavior: none; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  overflow: hidden;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── NAV TABS ── */
+.nav {
+  display: flex;
+  background: var(--s1);
+  border-bottom: 1px solid var(--border);
+  padding: 0 4px;
+  flex-shrink: 0;
+  gap: 2px;
+}
+.nav-tab {
+  flex: 1;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  padding: 12px 4px 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.nav-tab .ti { font-size: 18px; }
+.nav-tab.active { color: var(--g); border-bottom-color: var(--g); }
+
+/* ── PAGES ── */
+.page { display: none; flex: 1; overflow-y: auto; flex-direction: column; }
+.page.active { display: flex; }
+.scroll-page { overflow-y: auto; padding: 14px; gap: 12px; }
+
+/* ── AUTH ── */
+#p-auth {
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  gap: 18px;
+  text-align: center;
+}
+.auth-logo { font-size: 52px; }
+.auth-title { font-family: 'IBM Plex Sans', sans-serif; font-size: 28px; font-weight: 700; letter-spacing: -1px; }
+.auth-title span { color: var(--g); }
+.auth-sub { color: var(--muted); font-size: 13px; line-height: 1.6; }
+
+/* ── INPUTS ── */
+.inp {
+  width: 100%;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 16px;
+  padding: 14px 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.inp:focus { border-color: var(--g); }
+
+/* ── BUTTONS ── */
+.btn {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 14px 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  transition: all 0.12s;
+  user-select: none;
+  letter-spacing: 0.3px;
+}
+.btn .bi { font-size: 22px; }
+.btn:active { transform: scale(0.93); background: var(--s2); }
+.btn.g { border-color: var(--g); color: var(--g); }
+.btn.r { border-color: var(--red); color: var(--red); }
+.btn.y { border-color: var(--yellow); color: var(--yellow); }
+.btn.b { border-color: var(--blue); color: var(--blue); }
+.btn.p { border-color: var(--purple); color: var(--purple); }
+.btn.full { flex-direction: row; justify-content: center; gap: 10px; padding: 14px; }
+.btn.big { padding: 20px 10px; font-size: 13px; }
+
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+.grid4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 8px; }
+
+/* ── SECTION ── */
+.sec {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sec-label {
+  font-size: 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+.row-label { display: flex; justify-content: space-between; align-items: center; }
+
+/* ── INFO BAR ── */
+.info-bar {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.info-cell { display: flex; flex-direction: column; gap: 2px; }
+.info-k { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.info-v { font-size: 13px; color: var(--g); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── SLIDER ── */
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 5px;
+  background: var(--border);
+  border-radius: 3px;
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px;
+  background: var(--g);
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 0 8px rgba(0,255,136,0.4);
+}
+
+/* ── TRACKPAD ── */
+#trackpad-area {
+  flex: 1;
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  margin: 12px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: none;
+  user-select: none;
+  min-height: 200px;
+}
+.trackpad-hint {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+  pointer-events: none;
+  line-height: 1.8;
+}
+.trackpad-hint .big { font-size: 32px; display: block; margin-bottom: 8px; }
+#trackpad-active-indicator {
+  position: absolute;
+  top: 12px; right: 12px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+  transition: background 0.1s;
+}
+#trackpad-active-indicator.on { background: var(--g); box-shadow: 0 0 8px var(--g); }
+
+.trackpad-btns {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  padding: 0 12px 12px;
+  flex-shrink: 0;
+}
+
+/* ── KEYBOARD ── */
+#p-keyboard {
+  flex-direction: column;
+  padding: 12px;
+  gap: 10px;
+}
+.kb-display {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px;
+  font-size: 16px;
+  min-height: 60px;
+  word-break: break-all;
+  color: var(--text);
+  line-height: 1.5;
+}
+.kb-display span { color: var(--muted); }
+.kb-rows { display: flex; flex-direction: column; gap: 7px; }
+.kb-row { display: flex; gap: 5px; justify-content: center; }
+.kk {
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 14px;
+  font-weight: 500;
+  height: 42px;
+  min-width: 30px;
+  flex: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.08s;
+  user-select: none;
+  border-bottom: 2px solid var(--border);
+}
+.kk:active { transform: translateY(1px); border-bottom-width: 1px; background: var(--s3); }
+.kk.wide { flex: 1.6; }
+.kk.space { flex: 4; }
+.kk.spec { background: var(--s1); color: var(--muted); font-size: 11px; }
+.kk.spec.g { background: var(--s1); color: var(--g); border-color: var(--g); }
+.kk.spec.r { color: var(--red); border-color: var(--red); }
+.kk.g-bg { background: var(--g); color: #000; border-color: var(--g2); font-weight: 700; }
+
+.kb-special-row { display: flex; gap: 7px; }
+.kb-special-row .btn { flex: 1; padding: 10px 6px; font-size: 11px; gap: 5px; }
+.kb-special-row .btn .bi { font-size: 16px; }
+
+/* ── APPS ── */
+#p-apps { padding: 12px; gap: 10px; }
+.app-search {
+  position: relative;
+}
+.app-search .inp { padding-left: 38px; }
+.app-search::before { content: '🔍'; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); font-size: 14px; }
+#apps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+.app-item {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 12px 6px 10px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.12s;
+  user-select: none;
+}
+.app-item:active { transform: scale(0.92); background: var(--s2); }
+.app-icon { font-size: 26px; }
+.app-name { font-size: 9px; color: var(--muted); text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; width: 100%; }
+.app-item.running { border-color: var(--g); }
+.app-item.running .app-name { color: var(--g); }
+.apps-loading { color: var(--muted); font-size: 13px; text-align: center; padding: 32px; }
+
+/* ── TOAST ── */
+#toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(60px);
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 9px 18px;
+  font-size: 12px;
+  white-space: nowrap;
+  transition: transform 0.25s cubic-bezier(.175,.885,.32,1.275);
+  z-index: 200;
+  pointer-events: none;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+#toast.ok { border-color: var(--g); color: var(--g); }
+#toast.err { border-color: var(--red); color: var(--red); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 100;
+  align-items: flex-end;
+  padding: 16px;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--s1);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 20px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.modal-box h3 { font-family: 'IBM Plex Sans', sans-serif; font-size: 17px; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div class="page active" id="p-auth" style="display:flex">
+  <div class="auth-logo">🖥️</div>
+  <div class="auth-title">mac<span>remote</span></div>
+  <div class="auth-sub">Skriv inn token fra<br>mac_remote.py på din Mac</div>
+  <input class="inp" type="password" id="auth-inp" placeholder="Token..." autocomplete="off">
+  <button class="btn g full" onclick="login()"><span style="font-size:16px">→</span> Koble til</button>
+</div>
+
+<!-- HEADER (hidden until login) -->
+<div id="app-ui" style="display:none; flex-direction:column; height:100dvh; overflow:hidden;">
+
+<!-- Info strip -->
+<div class="info-bar" id="info-bar" style="margin:10px 10px 0">
+  <div class="info-cell"><div class="info-k">Batteri</div><div class="info-v" id="i-bat">–</div></div>
+  <div class="info-cell"><div class="info-k">Volum</div><div class="info-v" id="i-vol">–</div></div>
+  <div class="info-cell"><div class="info-k">Wi-Fi</div><div class="info-v" id="i-wifi">–</div></div>
+  <div class="info-cell"><div class="info-k">Mac</div><div class="info-v" id="i-host">–</div></div>
+</div>
+
+<!-- Tab content -->
+<div style="flex:1; overflow:hidden; display:flex; flex-direction:column;">
+
+  <!-- KONTROLL -->
+  <div class="page active scroll-page" id="p-ctrl">
+
+    <div class="sec">
+      <div class="row-label">
+        <span class="sec-label">🔊 Volum</span>
+        <span id="vol-val" style="color:var(--g);font-size:15px;font-weight:600">50</span>
+      </div>
+      <input type="range" id="vol-sl" min="0" max="100" value="50"
+        oninput="document.getElementById('vol-val').textContent=this.value"
+        onchange="api('volume/set/'+this.value)">
+      <div class="grid2">
+        <button class="btn" onclick="api('volume/set/0')"><span class="bi">🔇</span>Mute</button>
+        <button class="btn g" onclick="api('volume/set/100')"><span class="bi">🔊</span>Maks</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">🎵 Media</div>
+      <div class="grid3">
+        <button class="btn big" onclick="api('media/prev')"><span class="bi">⏮</span>Forrige</button>
+        <button class="btn big g" onclick="api('media/play')"><span class="bi">⏯</span>Play/Pause</button>
+        <button class="btn big" onclick="api('media/next')"><span class="bi">⏭</span>Neste</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">🖥️ Skjerm & System</div>
+      <div class="grid2">
+        <button class="btn y" onclick="api('display/sleep')"><span class="bi">😴</span>Skjerm av</button>
+        <button class="btn g" onclick="api('display/wake')"><span class="bi">☀️</span>Vekk</button>
+        <button class="btn y" onclick="api('system/sleep')"><span class="bi">💤</span>Dvale</button>
+        <button class="btn p" onclick="api('system/lock')"><span class="bi">🔒</span>Lås</button>
+        <button class="btn" onclick="api('system/screensaver')"><span class="bi">🌌</span>Saver</button>
+        <button class="btn b" onclick="document.getElementById('m-notif').classList.add('open')"><span class="bi">🔔</span>Varsling</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">📋 Utklippstavle</div>
+      <div style="display:flex;gap:8px">
+        <input class="inp" type="text" id="clip-inp" placeholder="Tekst til Mac..." style="flex:1;padding:11px 13px;font-size:14px">
+        <button class="btn g" style="white-space:nowrap;flex-direction:row;gap:6px;padding:11px 14px" onclick="setClip()">Send</button>
+      </div>
+      <button class="btn full" onclick="getClip()"><span class="bi">📋</span>Hent fra Mac</button>
+    </div>
+
+    <div class="sec">
+      <div class="sec-label">📶 Wi-Fi</div>
+      <div class="grid2">
+        <button class="btn g" onclick="api('wifi/on')"><span class="bi">📶</span>Wi-Fi på</button>
+        <button class="btn r" onclick="api('wifi/off')"><span class="bi">🚫</span>Wi-Fi av</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TRACKPAD -->
+  <div class="page" id="p-track" style="flex-direction:column">
+    <div id="trackpad-area">
+      <div class="trackpad-hint">
+        <span class="big">🖱️</span>
+        Dra for å flytte mus<br>
+        <span style="font-size:10px;color:var(--muted)">1 finger = flytt · 2 fingre = scroll</span>
+      </div>
+      <div id="trackpad-active-indicator"></div>
+    </div>
+    <div class="trackpad-btns">
+      <button class="btn b big" onclick="mouseClick('left')"><span class="bi">◀</span>Venstre</button>
+      <button class="btn big" onclick="mouseClick('middle')"><span class="bi">○</span>Midtre</button>
+      <button class="btn b big" onclick="mouseClick('right')"><span class="bi">▶</span>Høyre</button>
+    </div>
+  </div>
+
+  <!-- TASTATUR -->
+  <div class="page" id="p-keyboard">
+    <div class="kb-display" id="kb-buf"><span>Skriv nedenfor...</span></div>
+    <div class="kb-special-row">
+      <button class="btn b" onclick="sendKey('cmd_c')"><span class="bi">⌘</span>Kopi</button>
+      <button class="btn b" onclick="sendKey('cmd_v')"><span class="bi">⌘</span>Lim</button>
+      <button class="btn b" onclick="sendKey('cmd_z')"><span class="bi">⌘</span>Angre</button>
+      <button class="btn b" onclick="sendKey('cmd_tab')"><span class="bi">⌘</span>Tab</button>
+      <button class="btn r" onclick="clearKb()"><span class="bi">🗑</span>Tøm</button>
+    </div>
+    <div class="kb-rows">
+      <div class="kb-row">
+        <div class="kk spec" onclick="sendKey('escape')">esc</div>
+        <div class="kk spec" onclick="sendKey('tab')">⇥ tab</div>
+        <div class="kk spec" onclick="sendKey('up')">↑</div>
+        <div class="kk spec" onclick="sendKey('down')">↓</div>
+        <div class="kk spec" onclick="sendKey('left')">←</div>
+        <div class="kk spec" onclick="sendKey('right')">→</div>
+      </div>
+      <div class="kb-row" id="kb-row1"></div>
+      <div class="kb-row" id="kb-row2"></div>
+      <div class="kb-row" id="kb-row3"></div>
+      <div class="kb-row">
+        <div class="kk spec wide" onclick="toggleShift()">⇧</div>
+        <div class="kk spec wide" onclick="toggleNumbers()">123</div>
+        <div class="kk space" onclick="typeChar(' ')">mellomrom</div>
+        <div class="kk spec r wide" onclick="sendKey('delete')">⌫</div>
+        <div class="kk spec g-bg wide" onclick="sendKey('return')">↵</div>
+      </div>
+    </div>
+    <button class="btn g full" onclick="sendBuffer()" style="flex-shrink:0">
+      <span style="font-size:16px">↵</span> Send tekst til Mac
+    </button>
+  </div>
+
+  <!-- APPER -->
+  <div class="page scroll-page" id="p-apps">
+    <div class="app-search">
+      <input class="inp" type="text" id="app-search" placeholder="Søk apper..." oninput="filterApps(this.value)">
+    </div>
+    <div id="apps-grid"><div class="apps-loading">Laster apper...</div></div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="nav">
+  <button class="nav-tab active" onclick="switchTab('ctrl',this)">
+    <span class="ti">🎛</span>Kontroll
+  </button>
+  <button class="nav-tab" onclick="switchTab('track',this)">
+    <span class="ti">🖱️</span>Trackpad
+  </button>
+  <button class="nav-tab" onclick="switchTab('keyboard',this)">
+    <span class="ti">⌨️</span>Tastatur
+  </button>
+  <button class="nav-tab" onclick="switchTab('apps',this)">
+    <span class="ti">🚀</span>Apper
+  </button>
+</nav>
+
+</div><!-- /app-ui -->
+
+<!-- NOTIF MODAL -->
+<div class="modal-overlay" id="m-notif">
+  <div class="modal-box">
+    <h3>🔔 Send varsling</h3>
+    <input class="inp" type="text" id="notif-title" placeholder="Tittel" value="Mac Remote">
+    <input class="inp" type="text" id="notif-msg" placeholder="Melding...">
+    <div class="grid2">
+      <button class="btn r" onclick="document.getElementById('m-notif').classList.remove('open')">Avbryt</button>
+      <button class="btn g" onclick="sendNotif()">Send</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let TOKEN = '';
+const BASE = window.location.origin;
+let kbBuffer = '';
+let shiftOn = false;
+let numbersOn = false;
+let allApps = [];
+let runningApps = [];
+
+// ── KEYBOARD LAYOUTS ──
+const rows = {
+  lower: [
+    ['q','w','e','r','t','y','u','i','o','p','å'],
+    ['a','s','d','f','g','h','j','k','l','ø','æ'],
+    ['z','x','c','v','b','n','m',',','.','!','?'],
+  ],
+  upper: [
+    ['Q','W','E','R','T','Y','U','I','O','P','Å'],
+    ['A','S','D','F','G','H','J','K','L','Ø','Æ'],
+    ['Z','X','C','V','B','N','M',',','.','!','?'],
+  ],
+  numbers: [
+    ['1','2','3','4','5','6','7','8','9','0','-'],
+    ['!','@','#','$','%','^','&','*','(',')','_'],
+    ['+','=','[',']','{','}','/',':',';','"',"'"],
+  ]
+};
+
+function buildKb() {
+  const layout = numbersOn ? rows.numbers : (shiftOn ? rows.upper : rows.lower);
+  ['kb-row1','kb-row2','kb-row3'].forEach((id, i) => {
+    const row = document.getElementById(id);
+    row.innerHTML = '';
+    layout[i].forEach(ch => {
+      const k = document.createElement('div');
+      k.className = 'kk';
+      k.textContent = ch;
+      k.addEventListener('click', () => typeChar(ch));
+      row.appendChild(k);
+    });
+  });
+}
+
+function typeChar(ch) {
+  kbBuffer += ch;
+  updateKbDisplay();
+  if (shiftOn && !numbersOn) { shiftOn = false; buildKb(); }
+}
+
+function updateKbDisplay() {
+  const el = document.getElementById('kb-buf');
+  el.textContent = kbBuffer || '';
+  if (!kbBuffer) el.innerHTML = '<span>Skriv nedenfor...</span>';
+}
+
+function clearKb() { kbBuffer = ''; updateKbDisplay(); }
+function toggleShift() { shiftOn = !shiftOn; numbersOn = false; buildKb(); }
+function toggleNumbers() { numbersOn = !numbersOn; shiftOn = false; buildKb(); }
+
+async function sendBuffer() {
+  if (!kbBuffer) return;
+  const r = await api('type', { method:'POST', body:{text: kbBuffer} });
+  if (r) { kbBuffer = ''; updateKbDisplay(); }
+}
+
+async function sendKey(key) {
+  await api('key', { method:'POST', body:{key} });
+}
+
+// ── TRACKPAD ──
+let lastTouch = null;
+let lastTouchCount = 0;
+const pad = document.getElementById('trackpad-area');
+const ind = document.getElementById('trackpad-active-indicator');
+let moveBuffer = {dx:0, dy:0};
+let moveTimer = null;
+const SENSITIVITY = 1.8;
+
+pad.addEventListener('touchstart', e => {
+  e.preventDefault();
+  lastTouch = e.touches;
+  lastTouchCount = e.touches.length;
+  ind.classList.add('on');
+}, {passive:false});
+
+pad.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (!lastTouch) return;
+  const t = e.touches;
+  if (t.length === 1 && lastTouch.length === 1) {
+    const dx = (t[0].clientX - lastTouch[0].clientX) * SENSITIVITY;
+    const dy = (t[0].clientY - lastTouch[0].clientY) * SENSITIVITY;
+    moveBuffer.dx += dx;
+    moveBuffer.dy += dy;
+    if (!moveTimer) {
+      moveTimer = setTimeout(() => {
+        if (Math.abs(moveBuffer.dx) > 1 || Math.abs(moveBuffer.dy) > 1) {
+          fetch(`${BASE}/api/mouse/move`, {
+            method: 'POST',
+            headers: {'X-Auth-Token': TOKEN, 'Content-Type':'application/json'},
+            body: JSON.stringify({dx: Math.round(moveBuffer.dx), dy: Math.round(moveBuffer.dy)})
+          });
+        }
+        moveBuffer = {dx:0, dy:0};
+        moveTimer = null;
+      }, 16);
+    }
+  } else if (t.length === 2 && lastTouch.length === 2) {
+    const dy = (t[0].clientY - lastTouch[0].clientY);
+    if (Math.abs(dy) > 3) {
+      fetch(`${BASE}/api/mouse/scroll`, {
+        method: 'POST',
+        headers: {'X-Auth-Token': TOKEN, 'Content-Type':'application/json'},
+        body: JSON.stringify({dy: dy > 0 ? 3 : -3})
+      });
+    }
+  }
+  lastTouch = t;
+}, {passive:false});
+
+pad.addEventListener('touchend', e => {
+  e.preventDefault();
+  ind.classList.remove('on');
+  lastTouch = null;
+}, {passive:false});
+
+function mouseClick(btn) {
+  fetch(`${BASE}/api/mouse/click`, {
+    method: 'POST',
+    headers: {'X-Auth-Token': TOKEN, 'Content-Type':'application/json'},
+    body: JSON.stringify({button: btn})
+  });
+  toast('🖱️ Klikk', 'ok');
+}
+
+// ── APPS ──
+const APP_ICONS = {
+  'Safari':'🧭','Finder':'📁','Terminal':'⬛','Notes':'📝','Spotify':'🎵',
+  'Mail':'✉️','Calendar':'📅','Messages':'💬','FaceTime':'📹','Maps':'🗺️',
+  'Music':'🎶','Podcasts':'🎙️','Photos':'🖼️','Preview':'👁️','TextEdit':'📄',
+  'Calculator':'🔢','Clock':'🕐','Reminders':'✅','News':'📰','Stocks':'📈',
+  'Weather':'🌤️','Home':'🏠','Shortcuts':'⚡','Numbers':'📊','Pages':'📄',
+  'Keynote':'📊','Xcode':'🔧','VS Code':'💻','Chrome':'🌐','Firefox':'🦊',
+  'Slack':'💬','Zoom':'📹','Discord':'🎮','WhatsApp':'💬','Telegram':'✈️',
+  'VLC':'🎬','IINA':'🎬','1Password':'🔐','Notion':'📓','Figma':'🎨',
+  'Sketch':'🎨','Affinity Photo':'🖼️','iTerm2':'⬛','Warp':'⚡',
+  'Default': '📦'
+};
+
+function getIcon(name) {
+  for (const [k, v] of Object.entries(APP_ICONS)) {
+    if (name.toLowerCase().includes(k.toLowerCase())) return v;
+  }
+  return APP_ICONS.Default;
+}
+
+async function loadApps() {
+  try {
+    const [instRes, runRes] = await Promise.all([
+      fetch(`${BASE}/api/apps/installed`, {headers:{'X-Auth-Token':TOKEN}}),
+      fetch(`${BASE}/api/apps/running`, {headers:{'X-Auth-Token':TOKEN}})
+    ]);
+    const inst = await instRes.json();
+    const run = await runRes.json();
+    allApps = inst.apps || [];
+    runningApps = (run.apps || []).map(a => a.toLowerCase());
+    renderApps(allApps);
+  } catch(e) {
+    document.getElementById('apps-grid').innerHTML = '<div class="apps-loading">Klarte ikke laste apper</div>';
+  }
+}
+
+function renderApps(apps) {
+  const grid = document.getElementById('apps-grid');
+  if (!apps.length) { grid.innerHTML = '<div class="apps-loading">Ingen apper funnet</div>'; return; }
+  grid.innerHTML = '';
+  apps.forEach(name => {
+    const isRunning = runningApps.includes(name.toLowerCase());
+    const el = document.createElement('div');
+    el.className = 'app-item' + (isRunning ? ' running' : '');
+    el.innerHTML = `<div class="app-icon">${getIcon(name)}</div><div class="app-name">${name}</div>`;
+    el.addEventListener('click', () => {
+      api('app/open/' + encodeURIComponent(name));
+    });
+    grid.appendChild(el);
+  });
+}
+
+function filterApps(q) {
+  if (!q) { renderApps(allApps); return; }
+  renderApps(allApps.filter(a => a.toLowerCase().includes(q.toLowerCase())));
+}
+
+// ── API ──
+async function api(endpoint, opts = {}) {
+  try {
+    const res = await fetch(`${BASE}/api/${endpoint}`, {
+      method: opts.method || 'GET',
+      headers: {'X-Auth-Token': TOKEN, 'Content-Type':'application/json'},
+      body: opts.body ? JSON.stringify(opts.body) : undefined
+    });
+    const data = await res.json();
+    if (data.error) { toast('⚠️ ' + data.error, 'err'); return null; }
+    if (data.ok === false) { toast('❌ ' + (data.err || 'Feil'), 'err'); return null; }
+    toast('✓ OK', 'ok');
+    return data;
+  } catch(e) {
+    toast('❌ Ingen kontakt', 'err');
+    return null;
+  }
+}
+
+async function loadInfo() {
+  try {
+    const r = await fetch(`${BASE}/api/info`, {headers:{'X-Auth-Token':TOKEN}});
+    const d = await r.json();
+    document.getElementById('i-bat').textContent = d.battery || '–';
+    document.getElementById('i-vol').textContent = d.volume ? d.volume+'%' : '–';
+    document.getElementById('i-wifi').textContent = (d.wifi||'–').substring(0,10);
+    document.getElementById('i-host').textContent = (d.hostname||'–').split('.')[0];
+    if (d.volume) { document.getElementById('vol-sl').value = d.volume; document.getElementById('vol-val').textContent = d.volume; }
+  } catch(e) {}
+}
+
+async function setClip() {
+  const text = document.getElementById('clip-inp').value;
+  if (!text) return;
+  await api('clipboard/set', {method:'POST', body:{text}});
+}
+async function getClip() {
+  const d = await api('clipboard/get');
+  if (d) { document.getElementById('clip-inp').value = d.text; }
+}
+function sendNotif() {
+  const title = document.getElementById('notif-title').value;
+  const message = document.getElementById('notif-msg').value;
+  api('system/notification', {method:'POST', body:{title, message}});
+  document.getElementById('m-notif').classList.remove('open');
+}
+
+// ── TABS ──
+function switchTab(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('p-' + id).classList.add('active');
+  el.classList.add('active');
+  if (id === 'apps' && allApps.length === 0) loadApps();
+}
+
+// ── AUTH ──
+function login() {
+  TOKEN = document.getElementById('auth-inp').value.trim();
+  if (!TOKEN) return;
+  localStorage.setItem('mrt', TOKEN);
+  document.getElementById('p-auth').style.display = 'none';
+  document.getElementById('app-ui').style.display = 'flex';
+  loadInfo();
+  buildKb();
+  setInterval(loadInfo, 20000);
+}
+
+// ── TOAST ──
+let toastTimer;
+function toast(msg, type='ok') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.className = '', 1800);
+}
+
+// ── INIT ──
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('mrt');
+  if (saved) {
+    TOKEN = saved;
+    document.getElementById('auth-inp').value = saved;
+    login();
+  }
+  document.getElementById('auth-inp').addEventListener('keydown', e => {
+    if (e.key === 'Enter') login();
+  });
+});
+</script>
+</body>
+</html>
